@@ -1,10 +1,16 @@
 "use client";
 
-import { useCopilotReadable, useCopilotAction, useCopilotContext } from "@copilotkit/react-core";
+import { useCopilotAction } from "@copilotkit/react-core";
 import { CopilotSidebar } from "@copilotkit/react-ui";
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { DataGrid } from 'react-data-grid';
+import 'react-data-grid/lib/styles.css';
 
-
+type Row = {
+  id: number;
+  title: string;
+  status: string;
+};
 
 export default function Home() {
   return (
@@ -24,6 +30,42 @@ export default function Home() {
 function YourMainContent() {
   const [backgroundColor, setBackgroundColor] = useState("#ADD8E6");
   const [userName, setUserName] = useState("unknown");
+  
+  // Define columns for the grid
+  const columns = [
+    { key: 'id', name: 'ID', editable: true },
+    { key: 'title', name: 'Title', editable: true },
+    { key: 'status', name: 'Status', editable: true }
+  ];
+  
+  // Sample initial rows with proper typing
+  const [rows, setRows] = useState<Row[]>([
+    { id: 0, title: 'Task 1', status: 'In Progress' },
+    { id: 1, title: 'Task 2', status: 'Todo' },
+    { id: 2, title: 'Task 3', status: 'Done' }
+  ]);
+
+  // Handle row changes with proper typing
+  const onRowsChange = (updatedRows: Row[]) => {
+    setRows(updatedRows);
+  };
+
+  // Action for setting the background color (unchanged)
+  useCopilotAction({
+    name: "setBackgroundColor",
+    available: "remote",
+    parameters: [
+      {
+        name: "backgroundColor",
+        type: "string",
+        description: "The background color in hex format"
+      }
+    ],
+    handler: ({ backgroundColor }) => {
+      console.log("Executing color change to:", backgroundColor);
+      setBackgroundColor(backgroundColor);
+    },
+  });
 
   // Render a greeting in the chat
   useCopilotAction({
@@ -49,54 +91,22 @@ function YourMainContent() {
   });
 
 
-  // Action for setting the background color
-  useCopilotAction({
-    name: "setBackgroundColor",
-    available: "remote",
-    parameters: [
-      {
-        name: "backgroundColor",
-        type: "string",
-        description: "The background color in hex format"
-      }
-    ],
-    handler: ({ backgroundColor }) => {
-      console.log("Executing color change to:", backgroundColor);
-      setBackgroundColor(backgroundColor);
-    },
-  });
 
-  // Render the main content
+  // Render the main content with DataGrid
   return (
     <div
       style={{ backgroundColor }}
       className="h-screen w-screen flex justify-center items-center flex-col gap-4"
     >
-      <h1 className="bg-blue-500 p-10 rounded-xl text-white text-4xl">
-        Color - {backgroundColor}
-        <br></br>
-        User - {userName}
-      </h1>
-
-      <div className="flex gap-2">
-        <button
-          onClick={() => setBackgroundColor("#ff0000")}
-          className="bg-red-500 text-white px-4 py-2 rounded"
-        >
-          Set Red
-        </button>
-        <button
-          onClick={() => setBackgroundColor("#00ff00")}
-          className="bg-green-500 text-white px-4 py-2 rounded"
-        >
-          Set Green
-        </button>
-        <button
-          onClick={() => setBackgroundColor("#0000ff")}
-          className="bg-blue-500 text-white px-4 py-2 rounded"
-        >
-          Set Blue
-        </button>
+      <div className="bg-white p-6 rounded-xl shadow-lg w-3/4 max-w-4xl">
+        <h1 className="text-2xl font-bold mb-4 text-gray-800">{userName}</h1>
+        <DataGrid
+          columns={columns}
+          rows={rows}
+          onRowsChange={onRowsChange}
+          className="rdg-light"
+          style={{ height: 400 }}
+        />
       </div>
     </div>
   );
