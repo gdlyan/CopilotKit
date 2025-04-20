@@ -15,7 +15,7 @@ from langgraph.types import Command
 from langgraph.prebuilt import ToolNode
 from copilotkit import CopilotKitState
 
-from langgraph.checkpoint.memory import MemorySaver
+# from langgraph.checkpoint.memory import MemorySaver
 
 
 class AgentState(CopilotKitState):
@@ -195,5 +195,5 @@ workflow.set_entry_point("chat_node")
 
 
 # Compile the workflow graph
-#graph = workflow.compile()
-graph = workflow.compile(MemorySaver())
+graph = workflow.compile()
+# graph = workflow.compile(MemorySaver())
