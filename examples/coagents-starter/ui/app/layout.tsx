@@ -16,12 +16,10 @@ export default function RootLayout({ children }: { children: any }) {
       <body>
         <CopilotKit
           agent="sample_agent" // lock the agent to the sample_agent since we only have one agent
-          //runtimeUrl="/api/copilotkit"
           runtimeUrl="/api/copilotkit"
           showDevConsole={false}
         >
           {children}
-          <div>Something inside copilotkit wrapper yes it is</div>
         </CopilotKit>       
       </body>
     </html>

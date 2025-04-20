@@ -29,23 +29,7 @@ class AgentState(CopilotKitState):
     # language: Literal["english", "russian"] = "english"
     # your_custom_agent_state: str = ""
 
-# Define greetUser backend action
-# async def greet_user(userName: str):
-#     return {"name": "User_" + userName}
-
-# action_greetUser = CopilotAction(
-#     name="greetUser",
-#     description="Greets the user when the user introduces oneself and sets them as the active user lable in the main content area",
-#     parameters=[
-#         {
-#             "name": "userName",
-#             "type": "string",
-#             "description": "The name of the user to set as the active user lable in the main content area",
-#             "required": True,
-#         }
-#     ],
-#     handler=greet_user
-# )
+#Here go copilot actions
 
 @tool
 def greet_user(userName: str) -> dict:
@@ -75,6 +59,7 @@ def change_color(backgroundColor: str) -> dict:
     # Implement logic and return dict
     return {"backgroundColor": backgroundColor}
 
+#And these are regular tools
 @tool
 def get_weather(location: str):
     """

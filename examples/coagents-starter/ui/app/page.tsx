@@ -25,26 +25,7 @@ function YourMainContent() {
   const [backgroundColor, setBackgroundColor] = useState("#ADD8E6");
   const [userName, setUserName] = useState("unknown");
 
-
-  // useEffect(() => {
-  //   console.log("Component mounted or updated. Current background color", backgroundColor);
-  // }, [backgroundColor]);
-
-  // useEffect(() => {
-  //   const listener = (e: any) => {
-  //     console.log("RAW ACTION DATA:", e.detail);
-  //   };
-  //   window.addEventListener("copilotkit:action", listener);
-  //   return () => window.removeEventListener("copilotkit:action", listener);
-  // }, []);
-
-  // useCopilotAction({
-  //   name: "setBackgroundColor",
-  //   handler: () => {
-  //     console.log("useCopilotAction invoked", );
-  //   },
-  // });
-
+  // Render a greeting in the chat
   useCopilotAction({
     name: "greetUser",
     available: "remote",
@@ -67,54 +48,6 @@ function YourMainContent() {
         }
   });
 
-  // useEffect(() => {
-  //   const ws = new WebSocket('ws://localhost:8000'); // Your backend URL
-  //   ws.onmessage = (event) => {
-  //     console.log("WebSocket message:", event.data);
-  //   };
-  //   return () => ws.close();
-  // }, []);
-
-  // useCopilotReadable({
-  //   description: "Current background color",
-  //   value: backgroundColor,
-  // });
-
-  // useEffect(() => {
-  //   console.log("Current background color:", backgroundColor);
-  // }, [backgroundColor]);
-
-  // useEffect(() => {
-  //   fetch("http://localhost:8000/test-action", {
-  //     method: "POST",  // Explicitly set method
-  //     headers: {
-  //       "Content-Type": "application/json",
-  //     },
-  //     body: JSON.stringify({}),  // Empty payload
-  //   })
-  //     .then(res => res.json())
-  //     .then(data => console.log("Test action response:", data))
-  //     .catch(error => console.error("Fetch error:", error));
-  // }, []);
-
-  // Render a greeting in the chat
-  // useCopilotAction({
-  //   name: "greetUser",
-  //   available: "remote", // make this available only to the agent
-  //   parameters: [
-  //     {
-  //       name: "name",
-  //       description: "The name of the user to greet.",
-  //     },
-  //   ],
-  //   render: ({ args }) => {
-  //     return (
-  //       <div className="text-lg font-bold bg-blue-500 text-white p-2 rounded-xl text-center">
-  //         Hello, {args.name}!
-  //       </div>
-  //     );
-  //   },
-  // });
 
   // Action for setting the background color
   useCopilotAction({
