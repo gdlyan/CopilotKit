@@ -13,5 +13,13 @@
   "devDependencies": {
     "danger": "^12.3.3",
     "husky": "^9.1.4"
+  },
+  "dependencies": {
+    "@copilotkit/react-core": "^1.7.1",
+    "@copilotkit/react-ui": "^1.7.1",
+    "@copilotkit/runtime": "^1.7.1",
+    "@trpc/client": "^10.0.0",
+    "class-validator": "^0.14.1",
+    "copilotkit": "^0.0.13"
   }
 }

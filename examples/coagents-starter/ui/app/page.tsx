@@ -1,8 +1,10 @@
 "use client";
 
-import { useCopilotAction } from "@copilotkit/react-core";
+import { useCopilotReadable, useCopilotAction, useCopilotContext } from "@copilotkit/react-core";
 import { CopilotSidebar } from "@copilotkit/react-ui";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+
+
 
 export default function Home() {
   return (
@@ -21,38 +23,112 @@ export default function Home() {
 
 function YourMainContent() {
   const [backgroundColor, setBackgroundColor] = useState("#ADD8E6");
+  const [userName, setUserName] = useState("unknown");
 
-  // Render a greeting in the chat
+
+  // useEffect(() => {
+  //   console.log("Component mounted or updated. Current background color", backgroundColor);
+  // }, [backgroundColor]);
+
+  // useEffect(() => {
+  //   const listener = (e: any) => {
+  //     console.log("RAW ACTION DATA:", e.detail);
+  //   };
+  //   window.addEventListener("copilotkit:action", listener);
+  //   return () => window.removeEventListener("copilotkit:action", listener);
+  // }, []);
+
+  // useCopilotAction({
+  //   name: "setBackgroundColor",
+  //   handler: () => {
+  //     console.log("useCopilotAction invoked", );
+  //   },
+  // });
+
   useCopilotAction({
     name: "greetUser",
-    available: "remote", // make this available only to the agent
+    available: "remote",
     parameters: [
-      {
-        name: "name",
-        description: "The name of the user to greet.",
-      },
-    ],
-    render: ({ args }) => {
-      return (
-        <div className="text-lg font-bold bg-blue-500 text-white p-2 rounded-xl text-center">
-          Hello, {args.name}!
-        </div>
-      );
+          {
+            name: "userName",
+            description: "Name of the user just introduced to you, and you want to greet them",
+          },
+        ],
+    handler: ({ userName }) => {
+      console.log("useCopilotAction fetchNameForUserId invoked ", userName);  
+      setUserName(userName);
     },
+    render: ({ args }) => {
+          return (
+            <div className="text-lg font-bold bg-blue-500 text-white p-2 rounded-xl text-center">
+              Hello, user {args.userName}!
+            </div>
+          );
+        }
   });
+
+  // useEffect(() => {
+  //   const ws = new WebSocket('ws://localhost:8000'); // Your backend URL
+  //   ws.onmessage = (event) => {
+  //     console.log("WebSocket message:", event.data);
+  //   };
+  //   return () => ws.close();
+  // }, []);
+
+  // useCopilotReadable({
+  //   description: "Current background color",
+  //   value: backgroundColor,
+  // });
+
+  // useEffect(() => {
+  //   console.log("Current background color:", backgroundColor);
+  // }, [backgroundColor]);
+
+  // useEffect(() => {
+  //   fetch("http://localhost:8000/test-action", {
+  //     method: "POST",  // Explicitly set method
+  //     headers: {
+  //       "Content-Type": "application/json",
+  //     },
+  //     body: JSON.stringify({}),  // Empty payload
+  //   })
+  //     .then(res => res.json())
+  //     .then(data => console.log("Test action response:", data))
+  //     .catch(error => console.error("Fetch error:", error));
+  // }, []);
+
+  // Render a greeting in the chat
+  // useCopilotAction({
+  //   name: "greetUser",
+  //   available: "remote", // make this available only to the agent
+  //   parameters: [
+  //     {
+  //       name: "name",
+  //       description: "The name of the user to greet.",
+  //     },
+  //   ],
+  //   render: ({ args }) => {
+  //     return (
+  //       <div className="text-lg font-bold bg-blue-500 text-white p-2 rounded-xl text-center">
+  //         Hello, {args.name}!
+  //       </div>
+  //     );
+  //   },
+  // });
 
   // Action for setting the background color
   useCopilotAction({
     name: "setBackgroundColor",
-    available: "remote", // make this available only to the agent
+    available: "remote",
     parameters: [
       {
         name: "backgroundColor",
-        description:
-          "The background color to set. Make sure to pick nice colors.",
-      },
+        type: "string",
+        description: "The background color in hex format"
+      }
     ],
-    handler({ backgroundColor }) {
+    handler: ({ backgroundColor }) => {
+      console.log("Executing color change to:", backgroundColor);
       setBackgroundColor(backgroundColor);
     },
   });
@@ -61,11 +137,34 @@ function YourMainContent() {
   return (
     <div
       style={{ backgroundColor }}
-      className="h-screen w-screen flex justify-center items-center flex-col"
+      className="h-screen w-screen flex justify-center items-center flex-col gap-4"
     >
       <h1 className="bg-blue-500 p-10 rounded-xl text-white text-4xl">
-        Your main content
+        Color - {backgroundColor}
+        <br></br>
+        User - {userName}
       </h1>
+
+      <div className="flex gap-2">
+        <button
+          onClick={() => setBackgroundColor("#ff0000")}
+          className="bg-red-500 text-white px-4 py-2 rounded"
+        >
+          Set Red
+        </button>
+        <button
+          onClick={() => setBackgroundColor("#00ff00")}
+          className="bg-green-500 text-white px-4 py-2 rounded"
+        >
+          Set Green
+        </button>
+        <button
+          onClick={() => setBackgroundColor("#0000ff")}
+          className="bg-blue-500 text-white px-4 py-2 rounded"
+        >
+          Set Blue
+        </button>
+      </div>
     </div>
   );
 }

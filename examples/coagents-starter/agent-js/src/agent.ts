@@ -19,7 +19,7 @@ import { CopilotKitStateAnnotation } from "@copilotkit/sdk-js/langgraph";
 // 2. Define our agent state, which includes CopilotKit state to
 //    provide actions to the state.
 export const AgentStateAnnotation = Annotation.Root({
-    language: Annotation<"english" | "spanish">,
+    language: Annotation<"english" | "spanish" | "russian">,
     ...CopilotKitStateAnnotation.spec,
 });
 
@@ -29,7 +29,7 @@ export type AgentState = typeof AgentStateAnnotation.State;
 // 4. Define a simple tool to get the weather statically
 const getWeather = tool(
   (args) => {
-    return `The weather for ${args.location} is 70 degrees.`;
+    return `The weather for ${args.location} is 60 degrees.`;
   },
   {
     name: "getWeather",
@@ -40,13 +40,43 @@ const getWeather = tool(
   }
 );
 
+const getArtistName = tool(
+  (args) => {
+    return `The artist name for ${args.masterpiece} is Vasily Pupkin.`;
+  },
+  {
+    name: "getArtistName",
+    description: "Get the name of the artist for a given piece of art.",
+    schema: z.object({
+      masterpiece: z.string().describe("The piece of art to get the artist name for"),
+    }),
+  }
+);
+
+const getStockRate = tool(
+  (args) => {
+    return `I have no freaking idea about ${args.stock} rate cause I'm not connected to the markets, you moron.`;
+  },
+  {
+    name: "getStockRate",
+    description: "Get the stock rate for today",
+    schema: z.object({
+      stock: z.string().describe("A stock to get the rate for"),
+    }),
+  }
+);
+
 // 5. Put our tools into an array
-const tools = [getWeather];
+const tools = [getStockRate, getWeather, getArtistName];
 
 // 6. Define the chat node, which will handle the chat logic
 async function chat_node(state: AgentState, config: RunnableConfig) {
   // 6.1 Define the model, lower temperature for deterministic responses
-  const model = new ChatOpenAI({ temperature: 0, model: "gpt-4o" });
+  const model = new ChatOpenAI({ temperature: 0, model: "gpt-4o", 
+    configuration: {
+      baseURL: "https://api.proxyapi.ru/openai/v1",
+    },
+  });
 
   // 6.2 Bind the tools to the model, include CopilotKit actions. This allows
   //     the model to call tools that are defined in CopilotKit by the frontend.
@@ -60,7 +90,7 @@ async function chat_node(state: AgentState, config: RunnableConfig) {
   // 6.3 Define the system message, which will be used to guide the model, in this case
   //     we also add in the language to use from the state.
   const systemMessage = new SystemMessage({
-    content: `You are a helpful assistant. Talk in ${state.language || "english"}.`,
+    content: `You are an assistant not very helpful though. You must be rude if you don't have an answer to human question. Determine the language of the human and talk in the same. Talk in ${state.language || "english"}.`,
   });
 
   // 6.4 Invoke the model with the system message and the messages in the state

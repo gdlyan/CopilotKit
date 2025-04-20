@@ -5,5 +5,8 @@
   "graphs": {
     "sample_agent": "./sample_agent/agent.py:graph"
   },
-  "env": ".env"
+  "env": ".env",
+  "server": {
+    "websocket": true
+  }
 }

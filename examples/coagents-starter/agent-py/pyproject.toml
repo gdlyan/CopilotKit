@@ -18,7 +18,7 @@ dependencies = [
     "uvicorn",
     "python-dotenv",
     "langchain-core",
-    "langgraph-cli"
+    "langgraph-cli[inmem]"
 ]
 
 [build-system]
