@@ -1,16 +1,29 @@
 "use client";
 
+
 import { useCopilotAction } from "@copilotkit/react-core";
 import { CopilotSidebar } from "@copilotkit/react-ui";
-import { useState } from "react";
-import { DataGrid } from 'react-data-grid';
-import 'react-data-grid/lib/styles.css';
+import { useState, useEffect, useRef } from "react";
 
-type Row = {
-  id: number;
-  title: string;
-  status: string;
-};
+import { createUniver, defaultTheme, LocaleType, merge } from '@univerjs/presets';
+import { UniverSheetsCorePreset } from '@univerjs/presets/preset-sheets-core';
+import sheetsCoreEnUS from '@univerjs/presets/preset-sheets-core/locales/en-US';
+
+import { UniverSheetsZenEditorPlugin } from '@univerjs/sheets-zen-editor';
+import sheetsZenEditorEnUS from '@univerjs/sheets-zen-editor/locale/en-US';
+
+import { FUniver } from '@univerjs/facade';
+
+import '@univerjs/presets/lib/styles/preset-sheets-core.css';
+import '@univerjs/sheets-zen-editor/lib/index.css';
+
+
+declare global {
+  interface Window {
+    univerAPI: any;
+  }
+}
+
 
 export default function Home() {
   return (
@@ -28,27 +41,9 @@ export default function Home() {
 }
 
 function YourMainContent() {
+
   const [backgroundColor, setBackgroundColor] = useState("#ADD8E6");
   const [userName, setUserName] = useState("unknown");
-  
-  // Define columns for the grid
-  const columns = [
-    { key: 'id', name: 'ID', editable: true },
-    { key: 'title', name: 'Title', editable: true },
-    { key: 'status', name: 'Status', editable: true }
-  ];
-  
-  // Sample initial rows with proper typing
-  const [rows, setRows] = useState<Row[]>([
-    { id: 0, title: 'Task 1', status: 'In Progress' },
-    { id: 1, title: 'Task 2', status: 'Todo' },
-    { id: 2, title: 'Task 3', status: 'Done' }
-  ]);
-
-  // Handle row changes with proper typing
-  const onRowsChange = (updatedRows: Row[]) => {
-    setRows(updatedRows);
-  };
 
   // Action for setting the background color (unchanged)
   useCopilotAction({
@@ -79,6 +74,7 @@ function YourMainContent() {
         ],
     handler: ({ userName }) => {
       console.log("useCopilotAction fetchNameForUserId invoked ", userName);  
+      window.univerAPI.getActiveWorkbook().getActiveSheet().setName(userName)
       setUserName(userName);
     },
     render: ({ args }) => {
@@ -98,16 +94,73 @@ function YourMainContent() {
       style={{ backgroundColor }}
       className="h-screen w-screen flex justify-center items-center flex-col gap-4"
     >
-      <div className="bg-white p-6 rounded-xl shadow-lg w-3/4 max-w-4xl">
-        <h1 className="text-2xl font-bold mb-4 text-gray-800">{userName}</h1>
-        <DataGrid
-          columns={columns}
-          rows={rows}
-          onRowsChange={onRowsChange}
-          className="rdg-light"
-          style={{ height: 400 }}
-        />
+      <div className="bg-white p-6 rounded-xl shadow-lg w-[95%] h-[95vh] max-w-none mx-auto my-4">  
+        <SpreadsheetPage userName={userName} />  
       </div>
+      <button onClick={handleRename}>Rename Sheet</button>
     </div>
   );
 }
+
+interface SpreadsheetPageProps {
+  userName: string;
+}
+
+function SpreadsheetPage({ userName }: SpreadsheetPageProps) {
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const [univerAPI, setUniverAPI] = useState<any>(null);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    // Initialize Univer inside useEffect to ensure it runs on the client side
+    const { univerAPI } = createUniver({
+      locale: LocaleType.EN_US,
+      locales: {
+        enUS: merge(
+          {},
+          sheetsCoreEnUS,
+          sheetsZenEditorEnUS,
+        ),
+      },
+      theme: defaultTheme,
+      presets: [
+        UniverSheetsCorePreset({
+          container: containerRef.current, // Mount UI here
+          disableTextFormatAlert: true,
+          disableTextFormatMark: true,
+        }),
+      ],
+      plugins: [UniverSheetsZenEditorPlugin],
+    });
+
+    univerAPI.createWorkbook({ name: 'Test Sheet' });
+    univerAPI.getActiveWorkbook().getActiveSheet().setName(`${userName}`)
+    setUniverAPI(univerAPI);
+    
+
+    // Assign to window if needed
+    window.univerAPI = univerAPI;
+
+    // Cleanup function
+    return () => {
+      // Add any necessary cleanup here
+      univerAPI.dispose?.();
+    };
+  }, []);
+
+  return (
+    <div className="univer-container">
+      {/* This div will be used by Univer to mount the spreadsheet */}
+      <div ref={containerRef}  style={{ height: '90vh', width: '100%' }}></div>
+    </div>
+  );
+}
+
+const handleRename = () => {
+  if (window.univerAPI) {
+    const workbook = window.univerAPI.getActiveWorkbook();
+    const sheet = workbook.getActiveSheet();
+    sheet.setName('Renamed via Button');
+  }
+};

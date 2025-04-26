@@ -23,3 +23,5 @@ test-run-comment.md
 __pycache__/
 *.env
 *.next
+
+examples/coagents-starter/compose/LuckysheetServerStarter/

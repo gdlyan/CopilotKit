@@ -38,5 +38,6 @@
   "exclude": [
     "node_modules",
     "tailwind.config.ts"
-  ]
+  ],
+  "sourceMap": true
 }
