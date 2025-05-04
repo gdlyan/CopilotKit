@@ -44,6 +44,8 @@ function YourMainContent() {
 
   const [backgroundColor, setBackgroundColor] = useState("#ADD8E6");
   const [userName, setUserName] = useState("unknown");
+  const [spreadsheetData, setSpreadsheetData] = useState({tableData}) ;
+  
 
   // Action for setting the background color (unchanged)
   useCopilotAction({
@@ -86,27 +88,99 @@ function YourMainContent() {
         }
   });
 
+  useCopilotAction({
+    name: "putDataIntoActiveWorksheet",
+    available: "remote",
+    parameters: [
+          {
+            name: "tableData",
+            type: "string",
+            description: "2D-array with data that will replace the current content of the active worksheet",
+          },
+        ],
+    handler: ({ tableData }) => {
+      const jsonString = typeof tableData === 'string' 
+      ? tableData 
+      : JSON.stringify(tableData);
+
+      const jsonTableData = typeof tableData === 'string'
+      ? jsonString
+          .replace(/'/g, '"')
+          .replace(/"\s*([^"]+?)\s*"/g, '"$1"')
+      : jsonString;
+      
+      const parsedTableData: (string | number)[][] = (() => {
+        try {
+        return JSON.parse(jsonTableData)
+        } catch(e) {
+          console.error("Parsing failed:", e);
+          return [['Timestamp', 'Error'], [new Date().toISOString(), e]]; // or a default value
+        }
+      })()
+      console.log("useCopilotAction putDataIntoActiveWorksheet invoked \n", parsedTableData, parsedTableData?.length, parsedTableData[0]?.length);  
+      const wb = window.univerAPI.getActiveWorkbook()
+      const ws=wb?.getActiveSheet()
+      const ar=ws?.getRange(0, 0, parsedTableData?.length, parsedTableData[0]?.length);
+      if (parsedTableData && parsedTableData.length > 0) {      
+        ar?.setValues(parsedTableData);
+      }
+    }
+  });
+
+  useCopilotAction({
+    name: "getDataFromActiveWorksheet",
+    available: "remote",
+    parameters: [
+          {
+            name: "range",
+            description: "cell range in Excel notation",
+          },
+        ],
+    handler: ({ range }) => {
+
+      console.log("useCopilotAction getDataFromActiveWorksheet invoked \n", range);  
+      const wb = window.univerAPI.getActiveWorkbook()
+      const ws=wb?.getActiveSheet()
+      const ar=ws?.getRange(range);
+      const values=ar?.getValues();
+      console.log(values);
+      setSpreadsheetData(values);
+      return(values)
+    }
+  });
 
 
-  // Render the main content with DataGrid
+
+  // Render the main content with Spreadsheet
   return (
     <div
       style={{ backgroundColor }}
       className="h-screen w-screen flex justify-center items-center flex-col gap-4"
     >
       <div className="bg-white p-6 rounded-xl shadow-lg w-[95%] h-[95vh] max-w-none mx-auto my-4">  
-        <SpreadsheetPage userName={userName} />  
+        <SpreadsheetPage tableData={tableData} sheetName={userName} />  
       </div>
       <button onClick={handleRename}>Rename Sheet</button>
     </div>
   );
 }
 
+
 interface SpreadsheetPageProps {
-  userName: string;
+  sheetName: string;
+  tableData: any[][]
 }
 
-function SpreadsheetPage({ userName }: SpreadsheetPageProps) {
+const tableData = [
+  ['Product', 'Price', 'Stock'],
+  ['Laptop', '999', '45'],
+  ['Phone', '699', '120'],
+  ['Tablet', '399', '78']
+];
+
+
+
+function SpreadsheetPage({ tableData }: SpreadsheetPageProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [univerAPI, setUniverAPI] = useState<any>(null);
 
@@ -134,9 +208,16 @@ function SpreadsheetPage({ userName }: SpreadsheetPageProps) {
       plugins: [UniverSheetsZenEditorPlugin],
     });
 
-    univerAPI.createWorkbook({ name: 'Test Sheet' });
-    univerAPI.getActiveWorkbook().getActiveSheet().setName(`${userName}`)
+    univerAPI.createWorkbook({});  
+
     setUniverAPI(univerAPI);
+    //univerAPI.getActiveWorkbook().getActiveSheet().setName(`${userName}`)
+    const wb=univerAPI.getActiveWorkbook()
+    const ws=wb?.getActiveSheet()
+    const ar=ws?.getRange(0, 0, tableData?.length, tableData[0]?.length);
+    if (tableData && tableData.length > 0) {      
+      ar?.setValues(tableData);
+    }
     
 
     // Assign to window if needed
@@ -164,3 +245,4 @@ const handleRename = () => {
     sheet.setName('Renamed via Button');
   }
 };
+

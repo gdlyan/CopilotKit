@@ -26,7 +26,7 @@ class AgentState(CopilotKitState):
     the CopilotKitState fields. We're also adding a custom field, `language`,
     which will be used to set the language of the agent.
     """
-    # language: Literal["english", "russian"] = "english"
+    language: Literal["english", "russian"] = "english"
     # your_custom_agent_state: str = ""
 
 #Here go copilot actions
@@ -59,14 +59,34 @@ def change_color(backgroundColor: str) -> dict:
     # Implement logic and return dict
     return {"backgroundColor": backgroundColor}
 
-#And these are regular tools
 @tool
-def get_weather(location: str):
+def putDataIntoActiveWorksheet(tableData: str) -> dict:
     """
-    Get the weather for a given location.
-    """
-    return f"The weather for {location} is 70 degrees."
+    In a spreadsheet window clears the current active worksheet and puts the new data therein 
 
+    Args:
+        tableData (List[List[Any]]): strictly 2D array containing the new data to be put on a spreadsheet        
+
+    Returns:
+        dict: A dictionary containing a 2D array containing the new data to be put on a spreadsheet
+    """
+    # if not isinstance(tableData, list) or not all(isinstance(row, list) for row in tableData):
+    #     raise ValueError("Input must be a 2D array (List[List[Any]])")
+    
+    return {"tableData": tableData}
+
+@tool
+def getDataFromActiveWorksheet(spreadsheetData) -> dict:
+    """
+    Gets data from active worksheet of a spreadshet from main content area      
+
+    Returns:
+        dict: A dictionary containing a 2D array containing the new data to be put on a spreadsheet
+    """
+    
+    return {"spreadsheetData": spreadsheetData}
+
+#And these are regular tools
 @tool
 def get_now():
     """
@@ -76,9 +96,9 @@ def get_now():
 
 
 
-tools = [
-    get_weather,
+tools = [    
     get_now,
+    putDataIntoActiveWorksheet,
     TavilySearchResults(max_results=2)
     # your_tool_here
 ]
@@ -96,13 +116,12 @@ async def chat_node(state: AgentState, config: RunnableConfig) -> Command[Litera
     """
     
     # 1. Define the model
-    model = ChatOpenAI(model="gpt-4o", base_url="https://api.proxyapi.ru/openai/v1")
+    model = ChatOpenAI(model="gpt-4.1-nano", base_url="https://api.proxyapi.ru/openai/v1")
 
     # 2. Bind the tools to the model
     model_with_tools = model.bind_tools(
         [
             *(state.get("copilotkit",{}).get("actions", [])),
-            get_weather,
             get_now,
             # change_color,
             TavilySearchResults(max_results=2)
@@ -120,9 +139,25 @@ async def chat_node(state: AgentState, config: RunnableConfig) -> Command[Litera
     system_message = SystemMessage(
         content=f"""
         You are a helpful assistant. Talk in {state.get('language', 'english')}. 
+        
+        You have access to the following tools: {tools}. 
+        You can use these tools to assist you in completing your tasks. 
+        When appropriate, invoke the tools by their names and provide necessary parameters. A
+        Always consider whether a tool is needed before using it.
+        
         When encountering questions related to current events, news, or information that may change over time, use the TavilySearchResults tool. 
         This tool is specifically designed to search for up-to-date and reliable information. 
-        Ensure that your search query is clearly formulated and reflects the core of the question to obtain the most relevant results
+        Ensure that your search query is clearly formulated and reflects the core of the question to obtain the most relevant results.  
+
+        You can interact with spreadsheet using the following actions: {state.get("copilotkit",{}).get("actions", [])}     
+        
+        When generating tables or spreadsheet data, ALWAYS format them as a strict 2D array (List[List[Any]]) that can be directly used in the putDataIntoActiveWorksheet tool.
+        For example:
+        [
+            ["Name", "Age", "Occupation"],
+            ["John", 30, "Engineer"],
+            ["Alice", 25, "Designer"]
+        ]       
         """
     )
 
@@ -160,29 +195,6 @@ async def chat_node(state: AgentState, config: RunnableConfig) -> Command[Litera
         }
     )
 
-    # Hardcoded action (for testing)
-    # hardcoded_action = {
-    #     "type": "action",
-    #     "action": {
-    #         "name": "setBackgroundColor",  # Must match frontend useCopilotAction name
-    #         # "parameters": {
-    #         #     "backgroundColor": "#FF0000"  # Hardcoded red for testing
-    #         # }
-    #     },
-    #     "response": "Background color changed to red (hardcoded)"  # Optional
-    # }
-
-    # # Return the action in the CopilotKit state
-    # return Command(
-    #     goto=END,
-    #     update={
-    #         "messages": AIMessage(content="Triggering a hardcoded color change action!"),
-    #         "copilotkit": {
-    #             **getattr(state, "copilotkit", {}),  # Preserve existing actions
-    #             "actions": [hardcoded_action["action"]]  # Inject the new action
-    #         }
-    #     }
-    # )
 
 
 # Define the workflow graph
