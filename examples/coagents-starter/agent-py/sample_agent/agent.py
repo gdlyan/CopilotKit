@@ -31,38 +31,38 @@ class AgentState(CopilotKitState):
 
 #Here go copilot actions
 
-@tool
-def greet_user(userName: str) -> dict:
-    """
-    Greets the user when the user introduces oneself and sets them as the active user label in the main content area.
+# @tool
+# def greet_user(userName: str) -> dict:
+#     """
+#     Greets the user when the user introduces oneself and sets them as the active user label in the main content area.
 
-    Args:
-        userName (str): The name of the user to set as the active user label in the main content area
+#     Args:
+#         userName (str): The name of the user to set as the active user label in the main content area
 
-    Returns:
-        dict: A dictionary containing the processed user name
-    """
-    # Implement logic and return dict
-    return {"name": "User_" + userName}
+#     Returns:
+#         dict: A dictionary containing the processed user name
+#     """
+#     # Implement logic and return dict
+#     return {"name": "User_" + userName}
 
-@tool
-def change_color(backgroundColor: str) -> dict:
-    """
-    Sets background color for the main content area of the app.
+# @tool
+# def change_color(backgroundColor: str) -> dict:
+#     """
+#     Sets background color for the main content area of the app.
 
-    Args:
-        backgroundColor (str): The hex color code of the new background color
+#     Args:
+#         backgroundColor (str): The hex color code of the new background color
 
-    Returns:
-        dict: A dictionary containing the processed hex color code of the new background color
-    """
-    # Implement logic and return dict
-    return {"backgroundColor": backgroundColor}
+#     Returns:
+#         dict: A dictionary containing the processed hex color code of the new background color
+#     """
+#     # Implement logic and return dict
+#     return {"backgroundColor": backgroundColor}
 
 @tool
 def putDataIntoActiveWorksheet(tableData: str) -> dict:
     """
-    In a spreadsheet window clears the current active worksheet and puts the new data therein 
+    In a spreadsheet window puts the new data into the current active worksheet
 
     Args:
         tableData (List[List[Any]]): strictly 2D array containing the new data to be put on a spreadsheet        
@@ -70,21 +70,22 @@ def putDataIntoActiveWorksheet(tableData: str) -> dict:
     Returns:
         dict: A dictionary containing a 2D array containing the new data to be put on a spreadsheet
     """
-    # if not isinstance(tableData, list) or not all(isinstance(row, list) for row in tableData):
-    #     raise ValueError("Input must be a 2D array (List[List[Any]])")
     
     return {"tableData": tableData}
 
 @tool
-def getDataFromActiveWorksheet(spreadsheetData) -> dict:
+def getDataFromActiveWorksheet(selectAll, spreadsheetData) -> dict:
     """
-    Gets data from active worksheet of a spreadshet from main content area      
+    Gets data from the entire data range of the active worksheet of a spreadsheet from main content area. 
+    
+    Args:
+        seletAll (bool): If True, selects the entire data range from the spreadsheet; if False, uses only the active selection. Defaults to False if not specified.         
 
     Returns:
-        dict: A dictionary containing a 2D array containing the new data to be put on a spreadsheet
+        dict: A dictionary containing a 2D array containing the data retrieved from a spreadsheet
     """
     
-    return {"spreadsheetData": spreadsheetData}
+    return {"selectAll" : selectAll, "spreadsheetData": spreadsheetData}
 
 #And these are regular tools
 @tool
@@ -98,7 +99,8 @@ def get_now():
 
 tools = [    
     get_now,
-    putDataIntoActiveWorksheet,
+    # putDataIntoActiveWorksheet,
+    # getDataFromActiveWorksheet,
     TavilySearchResults(max_results=2)
     # your_tool_here
 ]
